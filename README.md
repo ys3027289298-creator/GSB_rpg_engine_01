@@ -11,5 +11,9 @@ Text files contain sections that are denoted with `#'s`, including:
 ##Test
 Run the `Region.py` file to play the example campaign (contained in the 'testParser' file)
 
+Run the engine test suite (parser recovery, battle invariants, region isolation, and both example campaigns) with:
+
+`python -m unittest test_rpg_engine`
+
 ##More soon
 I will be adding to, and refining the repository over time.

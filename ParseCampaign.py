@@ -1,3 +1,5 @@
+import os
+
 from Character import Character
 from Battle import Battle as Arena
 from CharacterArray import CharacterArray
@@ -7,6 +9,10 @@ from FormatText import format_text
 class Parser:
 
     def __init__(self, filepath=""):
+        if not filepath:
+            raise ValueError("Parser requires a non-empty campaign filepath")
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError("Campaign file not found: {}".format(filepath))
         self.campaignfile = open(filepath, 'r')
         self.all_lines = self.campaignfile.readlines()
         self.campaignfile.close()
@@ -15,6 +21,7 @@ class Parser:
         self.campaign_section = []
         self.atmosphere_section = []
         self.credits_section = []
+        self.errors = []
 
     @staticmethod
     def split_line(lineIN="", seperator=""):
@@ -23,20 +30,15 @@ class Parser:
 
     @staticmethod
     def parse_character_stats(Character_line):
-        stats_arr = []
-        stats = str(Character_line).partition(" ")
-
-        stats_arr.append(int(stats[0]))
-
-        stats = str(stats[2]).partition(" ")
-
-        stats_arr.append(int(stats[0]))
-        stats_arr.append(int(stats[2]))
-
-        return stats_arr
+        parts = str(Character_line).split()
+        if len(parts) != 3:
+            raise ValueError(
+                "expected 3 stats (health strength block), got {} in {!r}".format(
+                    len(parts), Character_line))
+        return [int(part) for part in parts]
 
     def parse_file(self):
-        section = str
+        section = ""
 
         for line in self.all_lines:
             if line.__contains__("#Characters"):
@@ -69,9 +71,21 @@ class Parser:
         if len(self.character_section) > 0:
 
             for character in self.character_section:
+                if not str(character).strip():
+                    continue
                 name_key, stats_string = self.split_line(character, ": ")
 
-                health, strength, block = self.parse_character_stats(stats_string)
+                try:
+                    health, strength, block = self.parse_character_stats(stats_string)
+                except ValueError as err:
+                    self.errors.append("Skipping invalid character line {!r}: {}".format(
+                        character.rstrip("\n"), err))
+                    continue
+
+                if not name_key.strip():
+                    self.errors.append("Skipping character line with empty name: {!r}".format(
+                        character.rstrip("\n")))
+                    continue
 
                 New_character = Character(name_key, health, strength, block)
                 # print(New_character)

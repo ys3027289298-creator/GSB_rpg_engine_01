@@ -1,10 +1,21 @@
-import os
-from FormatText import format_text
+from FormatText import format_text, clear_screen
 
 
 class Battle:
     @staticmethod  # used for methods that don't use 'self'  (i think)
     def getAttack(attacker, defender):
+        if attacker.health <= 0 and defender.health <= 0:
+            print("Both {} and {} have fallen. It's a draw!".format(attacker.name, defender.name))
+            return "Draw"
+        if attacker.health <= 0:
+            print("{} is unable to fight any more!".format(attacker.name))
+            print("{} is victorious!".format(defender.name))
+            return "End"
+        if defender.health <= 0:
+            print("{} is unable to fight any more!".format(defender.name))
+            print("{} is victorious!".format(attacker.name))
+            return "End"
+
         attack = attacker.attack()
         block = defender.getBlock()
         damage = attack - block
@@ -36,26 +47,24 @@ class Battle:
 
     def battle(self, fighter1, fighter2):
         while True:
-            if self.getAttack(fighter1, fighter2) == "End":
-                return "End"
-                break
+            result = self.getAttack(fighter1, fighter2)
+            if result in ("End", "Draw"):
+                return result
             nextLine = input(">")
-            os.system("cls")
-            if self.getAttack(fighter2, fighter1) == "End":
-                return "End"
-                break
+            clear_screen()
+            result = self.getAttack(fighter2, fighter1)
+            if result in ("End", "Draw"):
+                return result
             nextLine = input(">")
-            os.system("cls")
+            clear_screen()
 
     def skirmish(self, fighter1,  fighter2, rounds=2):
         for i in range(rounds):
             if i % 2 == 0:
-                if self.getAttack(fighter1, fighter2) == "End":
-                    return "End"
-                    break
+                result = self.getAttack(fighter1, fighter2)
             else:
-                if self.getAttack(fighter2, fighter1) == "End":
-                    return "End"
-                    break
+                result = self.getAttack(fighter2, fighter1)
+            if result in ("End", "Draw"):
+                return result
             nextLine = input(">")
-            os.system("cls")
+            clear_screen()

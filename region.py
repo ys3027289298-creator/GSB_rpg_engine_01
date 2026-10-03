@@ -2,12 +2,11 @@ from ParseCampaign import Parser
 from Battle import Battle as Arena
 from CharacterArray import CharacterArray
 import threading
-from FormatText import format_text
+from FormatText import format_text, clear_screen
 import Music
-import os
 
 
-clear = lambda: os.system("cls")
+clear = clear_screen
 
 
 class Region:
@@ -45,17 +44,26 @@ class Region:
 
     def doFunction(self, keyword="", lineIN=""):
         returnValue = None
-        if keyword.lower().__contains__("skirmish"):
+        if keyword.lower().__contains__("skirmish") or keyword.lower().__contains__("battle"):
             fighters = self.get_args(lineIN)
-            returnValue = self.arena.skirmish(self.characters.get(fighters[0]), self.characters.get(fighters[1]))
-
-        elif keyword.lower().__contains__("battle"):
-            fighters = self.get_args(lineIN)
-            returnValue = self.arena.battle(self.characters.get(fighters[0]), self.characters.get(fighters[1]))
+            fighter1 = self.characters.get(fighters[0])
+            fighter2 = self.characters.get(fighters[1])
+            if fighter1 is None or fighter2 is None:
+                print("Cannot start {}: unknown fighter in {!r}".format(keyword, lineIN.strip()))
+                return None
+            if fighter1.health <= 0 or fighter2.health <= 0:
+                print("Cannot start {}: a fighter is no longer able to fight".format(keyword))
+                return None
+            if keyword.lower().__contains__("skirmish"):
+                returnValue = self.arena.skirmish(fighter1, fighter2)
+            else:
+                returnValue = self.arena.battle(fighter1, fighter2)
 
         elif keyword.lower().__contains__("music"):
             partitions = self.region_file.split_line(lineIN, " => ")
-            music_thread = threading.Thread(target=Music.play_song, args=(self.cleanString(partitions[1]),))
+            music_thread = threading.Thread(target=Music.play_song,
+                                            args=(self.cleanString(partitions[1]),),
+                                            daemon=True)
             music_thread.start()
             clear()
 
