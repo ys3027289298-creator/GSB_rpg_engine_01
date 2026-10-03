@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 format_codes = {
     "black": "\u001b[30m",
     "red": "\u001b[31m",
@@ -48,20 +49,12 @@ format_codes = {
 def format_text(line="", colour_code=0):
     for code in format_codes:
         line = line.replace("[" + code + "]", format_codes.get(code))
-        line = line.replace("[_text256]", u"\u001b[38;5;" + str(colour_code) + "m")
-        if line.__contains__("[_text256_"):
-            startIndex = line.index("[_text256_") + len("[_text256_")
-            endIndex = line.index("_]")
-            colour_code = int(str(line[startIndex:endIndex]))
-            subStr = "[_text256_" + str(colour_code) + "_]"
-            line = line.replace(subStr, u"\u001b[38;5;" + str(colour_code) + "m")
-        line = line.replace("[_background256]", u"\u001b[48;5;" + str(colour_code) + "m")
-        if line.__contains__("[__background256_"):
-            startIndex = line.index("[__background256_") + len("[__background256_")
-            endIndex = line.index("_]")
-            colour_code = int(str(line[startIndex:endIndex]))
-            subStr = "[__background256_" + str(colour_code) + "_]"
-            line = line.replace(subStr, u"\u001b[48;5;" + str(colour_code) + "m")
+    line = line.replace("[_text256]", u"\u001b[38;5;" + str(colour_code) + "m")
+    line = re.sub(r"\[_text256_(\d+)_\]",
+                  lambda match: u"\u001b[38;5;" + match.group(1) + "m", line)
+    line = line.replace("[_background256]", u"\u001b[48;5;" + str(colour_code) + "m")
+    line = re.sub(r"\[__background256_(\d+)_\]",
+                  lambda match: u"\u001b[48;5;" + match.group(1) + "m", line)
     return line
 
 

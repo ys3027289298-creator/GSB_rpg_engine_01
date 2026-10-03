@@ -5,9 +5,18 @@ import threading
 from FormatText import format_text
 import Music
 import os
+import sys
 
 
-clear = lambda: os.system("cls")
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def wait_for_input():
+    try:
+        input(">")
+    except EOFError:
+        pass
 
 
 class Region:
@@ -43,15 +52,35 @@ class Region:
 
         return self.cleanString(str(fighter1)), self.cleanString(str(fighter2))
 
+    def get_fighters(self, lineIN=""):
+        fighter1_name, fighter2_name = self.get_args(lineIN)
+        fighter1 = self.characters.get(fighter1_name)
+        fighter2 = self.characters.get(fighter2_name)
+        if fighter1 is None or fighter2 is None:
+            print("Skipping {!r}: unknown fighter(s) {} / {}".format(
+                lineIN.strip(), fighter1_name, fighter2_name), file=sys.stderr)
+            return None
+        if fighter1.health <= 0 or fighter2.health <= 0:
+            return "End"
+        return fighter1, fighter2
+
     def doFunction(self, keyword="", lineIN=""):
         returnValue = None
         if keyword.lower().__contains__("skirmish"):
-            fighters = self.get_args(lineIN)
-            returnValue = self.arena.skirmish(self.characters.get(fighters[0]), self.characters.get(fighters[1]))
+            fighters = self.get_fighters(lineIN)
+            if fighters is None:
+                return None
+            if fighters == "End":
+                return "End"
+            returnValue = self.arena.skirmish(fighters[0], fighters[1])
 
         elif keyword.lower().__contains__("battle"):
-            fighters = self.get_args(lineIN)
-            returnValue = self.arena.battle(self.characters.get(fighters[0]), self.characters.get(fighters[1]))
+            fighters = self.get_fighters(lineIN)
+            if fighters is None:
+                return None
+            if fighters == "End":
+                return "End"
+            returnValue = self.arena.battle(fighters[0], fighters[1])
 
         elif keyword.lower().__contains__("music"):
             partitions = self.region_file.split_line(lineIN, " => ")
@@ -73,13 +102,13 @@ class Region:
             for line in self.campaign:
                 if self.hasKeyword(str(line)):
                     returnValue = self.doFunction(self.getKeyword(line), line)
-                    input(">")
+                    wait_for_input()
                     clear()
                 else:
                     if str(line) != "\n":
                         print(self.cleanString(line))
                     else:
-                        input(">")
+                        wait_for_input()
                         clear()
 
         self.keepMusicOn = False
@@ -89,6 +118,6 @@ class Region:
             print("Credits:")
             for credit in self.credits:
                 print(credit)
-            input(">")
+            wait_for_input()
 
         return returnValue

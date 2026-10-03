@@ -2,7 +2,7 @@ from region import Region
 import os
 
 
-clear = lambda: os.system("cls")
+clear = lambda: os.system("cls" if os.name == "nt" else "clear")
 clear()
 
 
@@ -24,8 +24,8 @@ def makechoice(options=[], returnType=""):
 
 
 def main():
-    Ascefelia = Region("Ascefelia Campaign\Ascefelia")
-    Ascefelia1 = Region("Ascefelia Campaign\Ascefelia1")
+    Ascefelia = Region(os.path.join("Ascefelia Campaign", "Ascefelia"))
+    Ascefelia1 = Region(os.path.join("Ascefelia Campaign", "Ascefelia1"))
     Ascefelia.game_loop()
 
     choice = makechoice(["1.Could I say no to such an adventure?", "2.Ah, I'll come back another time..."], "int")

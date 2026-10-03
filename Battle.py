@@ -2,9 +2,34 @@ import os
 from FormatText import format_text
 
 
+def _clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def _prompt():
+    try:
+        input(">")
+    except EOFError:
+        pass
+
+
 class Battle:
     @staticmethod  # used for methods that don't use 'self'  (i think)
     def getAttack(attacker, defender):
+        if attacker is None or defender is None:
+            return "End"
+
+        if attacker.health <= 0:
+            if defender.health <= 0:
+                print("Both fighters have fallen!")
+            else:
+                print("{} is victorious!".format(defender.name))
+            return "End"
+
+        if defender.health <= 0:
+            print("{} is victorious!".format(attacker.name))
+            return "End"
+
         attack = attacker.attack()
         block = defender.getBlock()
         damage = attack - block
@@ -35,27 +60,27 @@ class Battle:
             return "the fight will continue!"
 
     def battle(self, fighter1, fighter2):
+        if fighter1 is None or fighter2 is None:
+            return "End"
         while True:
             if self.getAttack(fighter1, fighter2) == "End":
                 return "End"
-                break
-            nextLine = input(">")
-            os.system("cls")
+            _prompt()
+            _clear()
             if self.getAttack(fighter2, fighter1) == "End":
                 return "End"
-                break
-            nextLine = input(">")
-            os.system("cls")
+            _prompt()
+            _clear()
 
     def skirmish(self, fighter1,  fighter2, rounds=2):
+        if fighter1 is None or fighter2 is None:
+            return "End"
         for i in range(rounds):
             if i % 2 == 0:
                 if self.getAttack(fighter1, fighter2) == "End":
                     return "End"
-                    break
             else:
                 if self.getAttack(fighter2, fighter1) == "End":
                     return "End"
-                    break
-            nextLine = input(">")
-            os.system("cls")
+            _prompt()
+            _clear()

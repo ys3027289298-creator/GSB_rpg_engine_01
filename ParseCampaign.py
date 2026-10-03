@@ -2,14 +2,21 @@ from Character import Character
 from Battle import Battle as Arena
 from CharacterArray import CharacterArray
 from FormatText import format_text
+import sys
 
 
 class Parser:
 
     def __init__(self, filepath=""):
-        self.campaignfile = open(filepath, 'r')
-        self.all_lines = self.campaignfile.readlines()
-        self.campaignfile.close()
+        self.filepath = filepath
+        self.all_lines = []
+        if filepath:
+            try:
+                with open(filepath, 'r') as campaignfile:
+                    self.all_lines = campaignfile.readlines()
+            except OSError as error:
+                print("Could not open campaign file {!r}: {}".format(filepath, error),
+                      file=sys.stderr)
         self.character_dictionary = CharacterArray()
         self.character_section = []
         self.campaign_section = []
@@ -23,17 +30,14 @@ class Parser:
 
     @staticmethod
     def parse_character_stats(Character_line):
-        stats_arr = []
-        stats = str(Character_line).partition(" ")
-
-        stats_arr.append(int(stats[0]))
-
-        stats = str(stats[2]).partition(" ")
-
-        stats_arr.append(int(stats[0]))
-        stats_arr.append(int(stats[2]))
-
-        return stats_arr
+        fields = str(Character_line).split()
+        if len(fields) != 3:
+            raise ValueError("expected 3 stats (health strength block), got {!r}".format(
+                Character_line))
+        try:
+            return [int(fields[0]), int(fields[1]), int(fields[2])]
+        except ValueError:
+            raise ValueError("non-numeric stats in {!r}".format(Character_line))
 
     def parse_file(self):
         section = str
@@ -69,9 +73,15 @@ class Parser:
         if len(self.character_section) > 0:
 
             for character in self.character_section:
+                if not str(character).strip():
+                    continue
                 name_key, stats_string = self.split_line(character, ": ")
-
-                health, strength, block = self.parse_character_stats(stats_string)
+                try:
+                    health, strength, block = self.parse_character_stats(stats_string)
+                except ValueError as error:
+                    print("Skipping malformed character line: {}".format(error),
+                          file=sys.stderr)
+                    continue
 
                 New_character = Character(name_key, health, strength, block)
                 # print(New_character)

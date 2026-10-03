@@ -9,7 +9,9 @@ Text files contain sections that are denoted with `#'s`, including:
 ->`#Campaign` section where the dialogue and actions are defined
 
 ##Test
-Run the `Region.py` file to play the example campaign (contained in the 'testParser' file)
+Run `The Fifth Season Example.py` or `Ascefelia Example.py` to play the example campaigns.
+
+Run the test suite with `python3 -m unittest test_engine`.
 
 ##More soon
 I will be adding to, and refining the repository over time.
